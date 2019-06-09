@@ -1,8 +1,8 @@
 ## Problem
 
 Write a SQL query to rank scores. 
-If there is a tie between two scores, both should have the **same ranking**. 
-Note that after a tie, the next ranking number should be the next consecutive integer value. 
+If there is a tie between two scores, both should have the **same ranking**. <br/>
+Note that after a tie, the next ranking number should be the next consecutive integer value. <br/>
 In other words, there should be **no "holes" between ranks.**
 
 ```
@@ -34,44 +34,44 @@ For example, given the above Scores table, your query should generate the follow
 
 ## Analysis
 
-For a score, its rank is the number of scores in the Scores table without duplicates that is **larger than or equal** to the score. 
-Take above table as example, there are six scores, 3.50, 3.65, 4.00, 3.85, 4.00 and 3.65. 
-The distinct scores are 3.50, 3.65, 3.85 and 4.00. For a score of 4.00, only 4.00 ≥ 4.00, so the rank is 1. 
-Similarly, for a score of 3.65, 4.00 ≥ 3.65, 3.85 ≥ 3.65, 3.65 ≥ 3.65, therefore, the rank is 3.
+For a score, its rank is the number of scores in the Scores table without duplicates that is **larger than or equal** to the score. <br/>
+In above table, there are six scores, and four distinct scores: 3.50, 3.65, 3.85 and 4.00. <br/>
+For 4.00, there is only one score 4.00 is greater than or equal to 4.00, so the rank of 4.00 is 1. <br/>
+Similarly, for 3.65, there are three scores are greater than or equl to it: 4.00, 3.85, 3.65. So rank of 3.65 is 3.<br/>
 
-First, we need to get all distinct scores:
+First, get all distinct scores:
 ```
 SELECT DISTINCT Score FROM Scores;
 ```
-Assuming that we call the table of distinct scores **t**, 
-next we can fully join t and Scores and filter scores in **t that is larger than or equal to each score in Scores**:
+We call this distinct scores table **ranking**, <br/>
+then we join ranking and Scores and filter scores in **ranking that is larger than or equal to each score in Scores**:
 
 ```
-SELECT s.Score, t.Score FROM
-(SELECT DISTINCT Score FROM Scores) AS t, Scores AS s
-WHERE s.Score <= t.Score;
+SELECT s.Score, ranking.Score FROM
+(SELECT DISTINCT Score FROM Scores) AS ranking, Scores AS s
+WHERE s.Score <= ranking.Score;
 ```
-For each score in Scores, count how many scores in t are larger than or equal to it:
+For each score in Scores, count how many scores in ranking are larger than or equal to it:
 ```
-SELECT s.Score, COUNT(t.Score) AS Rank FROM
-(SELECT DISTINCT Score FROM Scores) AS t, Scores AS s
-WHERE s.Score <= t.Score
+SELECT s.Score, COUNT(ranking.Score) AS Rank FROM
+(SELECT DISTINCT Score FROM Scores) AS ranking, Scores AS s
+WHERE s.Score <= ranking.Score
 GROUP BY s.Id, s.Score;
 ```
 Finally, sort by score in descending order:
 ```
-SELECT s.Score, COUNT(t.Score) AS Rank FROM
-(SELECT DISTINCT Score FROM Scores) AS t, Scores AS s
-WHERE s.Score <= t.Score
+SELECT s.Score, COUNT(ranking.Score) AS Rank FROM
+(SELECT DISTINCT Score FROM Scores) AS ranking, Scores AS s
+WHERE s.Score <= ranking.Score
 GROUP BY s.Id, s.Score
 ORDER BY s.Score DESC;
 ```
 
 ## Solution
 ```
-SELECT s.Score, COUNT(t.Score) AS Rank FROM
-(SELECT DISTINCT Score FROM Scores) AS t, Scores AS s
-WHERE s.Score <= t.Score
+SELECT s.Score as Score, COUNT(ranking.Score) AS Rank FROM
+(SELECT DISTINCT Score FROM Scores) AS ranking, Scores AS s
+WHERE s.Score <= ranking.Score
 GROUP BY s.Id, s.Score
 ORDER BY s.Score DESC;
 ```
